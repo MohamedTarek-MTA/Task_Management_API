@@ -1,18 +1,28 @@
-﻿using Task_Management_API.Domain.Enums;
+﻿using System.ComponentModel.DataAnnotations;
+using Task_Management_API.Domain.Enums;
 
 namespace Task_Management_API.Domain.Entities
 {
     public class TaskItem
     {
-        public int Id { get; set; }
+        [Key]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        [Required,MaxLength(200)]
         public string Title { get; set; }
+        [Required,MaxLength(1000)]
         public string Description { get; set; }
-        public TaskItemStatus Status { get; set; }
+        public TaskItemStatus Status { get; set; } = TaskItemStatus.NOT_STARTED;
+        [Required]
         public TaskPriority Priority   { get; set; }
-        public int ProjectId { get; set; }
-        public int? AssignedUserId { get; set; }
+        [Required]
         public DateTime DueDate { get; set; }
-        public DateTime CreatedAt {  get; set; }
+        public DateTime CreatedAt {  get; set; } = DateTime.Now;
         public DateTime? CompletedAt {  get; set; }
+        public Guid ProjectId { get; set; }
+        public virtual Project Project { get; set; }
+        public Guid? AssignedUserId { get; set; }
+        public virtual User? AssignedUser { get; set; }
+
+        public virtual ICollection<TaskHistory> TaskHistories { get; set; } = new List<TaskHistory>();
     }
 }
