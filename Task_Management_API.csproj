@@ -25,9 +25,7 @@
   <ItemGroup>
     <Folder Include="API\Controllers\" />
     <Folder Include="Application\" />
-    <Folder Include="Infrastructure\Configurations\" />
-    <Folder Include="Infrastructure\Date\Migrations\" />
-    <Folder Include="Infrastructure\Date\Repositories\" />
+    <Folder Include="Infrastructure\Data\Repositories\" />
   </ItemGroup>
 
 </Project>

@@ -1,12 +1,18 @@
-﻿namespace Task_Management_API.Domain.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Task_Management_API.Domain.Entities
 {
     public class TaskHistory
     {
-        public int Id { get; set; }
-        public int TaskItemId { get; set; }
+        [Key]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid TaskItemId { get; set; }
+        [Required , MaxLength(100)]
         public string Action { get; set; }
+        [MaxLength(500)]
         public string? OldValue { get; set; }
+        [MaxLength(500)]
         public string? NewValue { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }
