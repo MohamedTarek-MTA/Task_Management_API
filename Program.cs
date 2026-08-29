@@ -1,6 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
-using Task_Management_API.Infrastructure.Date;
+using Task_Management_API.Application.Interfaces;
+using Task_Management_API.Infrastructure.Data;
+using Task_Management_API.Infrastructure.Repositories;
 
 namespace Task_Management_API
 {
@@ -22,6 +24,8 @@ namespace Task_Management_API
 
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             var app = builder.Build();
 
