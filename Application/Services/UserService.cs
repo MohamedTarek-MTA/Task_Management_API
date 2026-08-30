@@ -23,7 +23,7 @@ namespace Task_Management_API.Application.Services
             _userMapper = userMapper;
         }
 
-        public async Task<UserDTO> GetUserById(Guid id) 
+        public async Task<UserDTO> GetUserById(Guid id)
         {
             var user = await _repository.GetByIdAsync(id);
             if (user == null)
@@ -47,23 +47,23 @@ namespace Task_Management_API.Application.Services
                 .OrderBy(user => user.FullName);
         }
 
-        public async Task<IPagedList<UserDTO>> GetAllUsersPaged(int pageNumber,int pageSize)
+        public async Task<IPagedList<UserDTO>> GetAllUsersPaged(int pageNumber, int pageSize)
         {
-            var users = await _repository.GetPagedAsync(pageNumber,pageSize);
+            var users = await _repository.GetPagedAsync(pageNumber, pageSize);
 
             if (users.IsNullOrEmpty())
             {
-                _logger.LogInformation("No users found.");  
+                _logger.LogInformation("No users found.");
                 return new StaticPagedList<UserDTO>(new List<UserDTO>(), pageNumber, pageSize, 0);
             }
             return users
                 .Select(user => _userMapper.ToDTO(user))
                 .OrderBy(user => user.FullName)
-                .ToPagedList(pageNumber,pageSize);
+                .ToPagedList(pageNumber, pageSize);
         }
         public async Task<IEnumerable<UserDTO>> FindUsersByName(string name)
         {
-            var users = await _repository.FindAsync(user =>user.FullName.Equals(name));
+            var users = await _repository.FindAsync(user => user.FullName.Equals(name));
             if (users.IsNullOrEmpty())
             {
                 _logger.LogInformation("No users found matching the condition.");
@@ -87,7 +87,7 @@ namespace Task_Management_API.Application.Services
 
         public async Task<UserDTO> CreateUser(UserDTO userDto)
         {
-            if(userDto.Email.Equals(FindUserByEmail(userDto.Email).Result.Email))
+            if (userDto.Email.Equals(FindUserByEmail(userDto.Email).Result.Email))
             {
                 _logger.LogError($"User with email {userDto.Email} already exists.");
                 throw new DuplicateResourceException($"User with email {userDto.Email} already exists.");
@@ -112,8 +112,8 @@ namespace Task_Management_API.Application.Services
                 throw new KeyNotFoundException($"User with ID {id} not found.");
             }
             var updatedUser = _userMapper.ToEntity(userDto);
-            updatedUser.Id = id; // Ensure the ID remains the same
-            if(updatedUser.Email.Equals(FindUserByEmail(userDto.Email).Result.Email))
+            updatedUser.Id = id; 
+            if (updatedUser.Email.Equals(FindUserByEmail(userDto.Email).Result.Email))
             {
                 _logger.LogError($"User with email {userDto.Email} already exists.");
                 throw new DuplicateResourceException($"User with email {userDto.Email} already exists.");
@@ -142,6 +142,29 @@ namespace Task_Management_API.Application.Services
                 _logger.LogError("Failed to delete user.");
                 throw new Exception("Failed to delete user.");
             }
+        }
+        public async Task<IPagedList<UserDTO>> GetAllUsersByRole(string role, int pageNumber, int pageSize)
+        {
+            var users = await _repository.FindAsync(user => user.Role.Equals(role));
+            if (users.IsNullOrEmpty())
+            {
+                _logger.LogInformation($"No users found with role: {role}");
+                return new StaticPagedList<UserDTO>(new List<UserDTO>(), pageNumber, pageSize, 0);
+            }
+            return users
+                .Select(user => _userMapper.ToDTO(user))
+                .OrderBy(user => user.FullName)
+                .ToPagedList(pageNumber, pageSize);
+        }
+        public async Task<bool> CheckUserExsitsById(Guid id)
+        {
+            var user = await _repository.FindAsync(user => user.Id == id);
+            if (user == null)
+            {
+                _logger.LogInformation($"User with ID {id} does not exist.");
+                return false;
+            }
+            return true;
         }
     }
 }

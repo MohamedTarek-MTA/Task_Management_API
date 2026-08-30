@@ -2,6 +2,9 @@
 using System.Linq.Expressions;
 using Task_Management_API.Application.Interfaces;
 using Task_Management_API.Infrastructure.Data;
+using X.PagedList;
+using X.PagedList.EF;
+using X.PagedList.Extensions;
 
 namespace Task_Management_API.Infrastructure.Repositories
 {
@@ -25,6 +28,10 @@ namespace Task_Management_API.Infrastructure.Repositories
         public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
 
         public async Task<T?> GetByIdAsync<TId>(TId id) where TId : notnull => await _dbSet.FindAsync(id);
+
+        public async Task<IPagedList<T>> GetPagedAsync(int pageNumber, int pageSize) => 
+            await _dbSet.AsNoTracking().ToPagedListAsync(pageNumber, pageSize);
+        
 
         public void Remove(T entity) => _dbSet.Remove(entity);
 

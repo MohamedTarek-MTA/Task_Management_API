@@ -13,7 +13,7 @@ namespace Task_Management_API.Infrastructure.Configurations
             builder.HasOne(t => t.Project)
                 .WithMany(p => p.TaskItems)
                 .HasForeignKey(ti => ti.ProjectId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // TaskItem & User: One-to-Many relationship 
 
