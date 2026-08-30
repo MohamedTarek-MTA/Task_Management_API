@@ -11,13 +11,14 @@ namespace Task_Management_API.Domain.Entities
         public string Title { get; set; }
         [Required,MaxLength(1000)]
         public string Description { get; set; }
-        public TaskItemStatus Status { get; set; } = TaskItemStatus.NOT_STARTED;
+        public TaskItemStatus Status { get; set; } = TaskItemStatus.TODO;
         [Required]
         public TaskPriority Priority   { get; set; }
         [Required]
         public DateTime DueDate { get; set; }
         public DateTime CreatedAt {  get; set; } = DateTime.Now;
         public DateTime? CompletedAt {  get; set; }
+        [Required]
         public Guid ProjectId { get; set; }
         public virtual Project Project { get; set; }
         public Guid? AssignedUserId { get; set; }
