@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using Task_Management_API.API.Middlewares;
 using Task_Management_API.Application.Interfaces;
 using Task_Management_API.Infrastructure.Data;
 using Task_Management_API.Infrastructure.Repositories;
@@ -36,6 +37,8 @@ namespace Task_Management_API
                 app.UseSwagger();
                 app.UseSwaggerUI();    
             }
+
+            app.UseMiddleware<RateLimitingMiddleware>();
 
             app.UseHttpsRedirection();
 
