@@ -61,6 +61,12 @@ namespace Task_Management_API.Application.Services
         {
             var project = _projectMapper.ToEntity(projectDTO);
             await _repository.AddAsync(project);
+            var success = await _repository.SaveChangesAsync();
+            if (!success)
+            {
+                _logger.LogError("Failed to create project.");
+                throw new Exception("Failed to create project.");
+            }
             return _projectMapper.ToDTO(project);
         }
         public async Task<ProjectDTO> UpdateProject(Guid id, ProjectDTO projectDTO)
@@ -118,7 +124,7 @@ namespace Task_Management_API.Application.Services
             return projects
                 .Select(project => _projectMapper.ToDTO(project))
                 .OrderBy(project => project.Name)
-                .ToPagedList();
+                .ToPagedList(pageNumber, pageSize);
         }
 
         public async Task<IPagedList<ProjectDTO>> FindProjectsByStatus(ProjectStatus status, int pageNumber, int pageSize)
@@ -132,7 +138,7 @@ namespace Task_Management_API.Application.Services
             return projects
                 .Select(project => _projectMapper.ToDTO(project))
                 .OrderBy(project => project.Name)
-                .ToPagedList();
+                .ToPagedList(pageNumber, pageSize);
         }
         public async Task<bool> CheckProjectExsitsById(Guid id)
         {

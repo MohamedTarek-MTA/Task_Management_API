@@ -17,13 +17,15 @@ namespace Task_Management_API.Application.Services
         private readonly TaskItemMapper _taskItemMapper;
         private readonly ProjectService _projectService;
         private readonly UserService _userService;
-        public TaskItemService(Repository<TaskItem> repository, ILogger<TaskItemService> logger, TaskItemMapper taskItemMapper, ProjectService projectService, UserService userService)
+        private readonly TaskHistoryService _taskHistoryService;
+        public TaskItemService(Repository<TaskItem> repository, ILogger<TaskItemService> logger, TaskItemMapper taskItemMapper, ProjectService projectService, UserService userService, TaskHistoryService taskHistoryService)
         {
             _repository = repository;
             _logger = logger;
             _taskItemMapper = taskItemMapper;
             _projectService = projectService;
             _userService = userService;
+            _taskHistoryService = taskHistoryService;
         }
 
         public async Task<TaskItemDTO> GetTaskItemById(Guid id)
@@ -85,7 +87,7 @@ namespace Task_Management_API.Application.Services
             return filteredTaskItems
                 .Select(taskItem => _taskItemMapper.ToDTO(taskItem))
                 .OrderBy(taskItem => taskItem.CreatedAt)
-                .ToPagedList();
+                .ToPagedList(pageNumber, pageSize);
         }
         public async Task<TaskItemDTO> CreateTaskItem(TaskItemDTO taskItemDTO)
         {
@@ -99,6 +101,21 @@ namespace Task_Management_API.Application.Services
             }
             var taskItem = _taskItemMapper.ToEntity(taskItemDTO);
             await _repository.AddAsync(taskItem);
+            var success = await _repository.SaveChangesAsync();
+            if (!success)
+            {
+                _logger.LogError("Failed to create task item.");
+                throw new Exception("Failed to create task item.");
+            }
+            var taskHistoryDTO = new TaskHistoryDTO
+            {
+                TaskItemId = taskItem.Id,
+                Action = "Task Created",
+                CreatedAt = DateTime.Now,
+                OldValue = null,
+                NewValue = $"Task '{taskItem.Title}' created with status '{taskItem.Status}' and priority '{taskItem.Priority}'."
+            };
+            await _taskHistoryService.CreateTaskHistory(taskHistoryDTO);
             return _taskItemMapper.ToDTO(taskItem);
         }
         public async Task<TaskItemDTO> AssigneTaskToUser(Guid taskItemId, Guid userId)
@@ -116,6 +133,21 @@ namespace Task_Management_API.Application.Services
             }
             taskItem.AssignedUserId = userId;
             _repository.Update(taskItem);
+            var success = await _repository.SaveChangesAsync();
+            if (!success)
+            {
+                _logger.LogError("Failed to assign task to user.");
+                throw new Exception("Failed to assign task to user.");
+            }
+            var taskHistoryDTO = new TaskHistoryDTO
+            {
+                TaskItemId = taskItem.Id,
+                Action = "Task Assigned",
+                CreatedAt = DateTime.Now,
+                OldValue = $"Task '{taskItem.Title}' created with status '{taskItem.Status}' and priority '{taskItem.Priority}'.",
+                NewValue = $"Task '{taskItem.Title}' assigned to user with ID {userId}."
+            };
+            await _taskHistoryService.CreateTaskHistory(taskHistoryDTO);
             return _taskItemMapper.ToDTO(taskItem);
         }
         public async Task<TaskItemDTO> UpdateTaskItemStatus(Guid id, TaskItemStatus taskItemStatus)
@@ -126,8 +158,24 @@ namespace Task_Management_API.Application.Services
                 _logger.LogWarning($"TaskItem with ID {id} not found.");
                 throw new KeyNotFoundException($"TaskItem with ID {id} not found.");
             }
+            var oldStatus = existingTaskItem.Status;
             existingTaskItem.Status = taskItemStatus;
             _repository.Update(existingTaskItem);
+            var success = await _repository.SaveChangesAsync();
+            if (!success)
+            {
+                _logger.LogError("Failed to update task item status.");
+                throw new Exception("Failed to update task item status.");
+            }
+            var taskHistoryDTO = new TaskHistoryDTO
+            {
+                TaskItemId = existingTaskItem.Id,
+                Action = "Task Status Updated",
+                CreatedAt = DateTime.Now,
+                OldValue = $"Task '{existingTaskItem.Title}' had status '{oldStatus}' and priority '{existingTaskItem.Priority}'.",
+                NewValue = $"Task '{existingTaskItem.Title}' updated to status '{taskItemStatus}' and priority '{existingTaskItem.Priority}'."
+            };
+            await _taskHistoryService.CreateTaskHistory(taskHistoryDTO);
             return _taskItemMapper.ToDTO(existingTaskItem);
         }
         public async Task<TaskItemDTO> UpdateTaskItem(Guid id, TaskItemDTO taskItemDTO)
@@ -138,12 +186,29 @@ namespace Task_Management_API.Application.Services
                 _logger.LogWarning($"TaskItem with ID {id} not found.");
                 throw new KeyNotFoundException($"TaskItem with ID {id} not found.");
             }
+            var oldTaskItem = existingTaskItem;
             var updatedTaskItem = _taskItemMapper.ToEntity(taskItemDTO);
             updatedTaskItem.Id = existingTaskItem.Id; 
             _repository.Update(updatedTaskItem);
+            var success = await _repository.SaveChangesAsync();
+            if (!success)
+            {
+                _logger.LogError("Failed to update task item.");
+                throw new Exception("Failed to update task item.");
+            }
+            var taskHistoryDTO = new TaskHistoryDTO
+            {
+                TaskItemId = existingTaskItem.Id,
+                Action = "Task Updated",
+                CreatedAt = DateTime.Now,
+                OldValue = $"Task '{oldTaskItem.Title}' had status '{oldTaskItem.Status}' and priority '{oldTaskItem.Priority}' and assigned to user with ID {oldTaskItem.AssignedUserId}.",
+                NewValue = $"Task '{updatedTaskItem.Title}' updated to status '{updatedTaskItem.Status}' and priority '{updatedTaskItem.Priority}'."
+            };
+            await _taskHistoryService.CreateTaskHistory(taskHistoryDTO);
+
             return _taskItemMapper.ToDTO(updatedTaskItem);
         }
-        public async Task DeleteTaskItemStatus(Guid id) 
+        public async Task DeleteTaskItem(Guid id) 
         {
             var taskItem = await _repository.GetByIdAsync(id);
             if (taskItem == null)
@@ -152,6 +217,23 @@ namespace Task_Management_API.Application.Services
                 throw new KeyNotFoundException($"TaskItem with ID {id} not found.");
             }
             _repository.Remove(taskItem);
+            var success = await _repository.SaveChangesAsync();
+            if (!success)
+            {
+                _logger.LogError("Failed to delete task item.");
+                throw new Exception("Failed to delete task item.");
+            }
+        }
+
+        public async Task<bool> CheckTaskItemExsitsById(Guid id)
+        {
+            var taskItem = await _repository.FindAsync(task => task.Id == id);
+            if (taskItem == null)
+            {
+                _logger.LogWarning($"TaskItem with ID {id} not found.");
+                return false;
+            }
+            return true;
         }
     }
 }
