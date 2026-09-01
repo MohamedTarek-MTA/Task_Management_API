@@ -10,6 +10,7 @@ namespace Task_Management_API.Application.Interfaces
         Task<T?> GetByIdAsync<TId>(TId id) where TId : notnull;
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
 
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
         Task<IPagedList<T>> GetPagedAsync(int pageNumber, int pageSize);
 
         //Write, Edit, Delete

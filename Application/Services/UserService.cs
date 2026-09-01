@@ -13,10 +13,10 @@ namespace Task_Management_API.Application.Services
     public class UserService : IUserService
     {
         private readonly ILogger<UserService> _logger;
-        private readonly Repository<User> _repository;
+        private readonly IRepository<User> _repository;
         private readonly UserMapper _userMapper;
 
-        public UserService(ILogger<UserService> logger, Repository<User> repository, UserMapper userMapper)
+        public UserService(ILogger<UserService> logger, IRepository<User> repository, UserMapper userMapper)
         {
             _logger = logger;
             _repository = repository;
@@ -87,7 +87,7 @@ namespace Task_Management_API.Application.Services
 
         public async Task<UserDTO> CreateUser(UserDTO userDto)
         {
-            if (userDto.Email.Equals(FindUserByEmail(userDto.Email).Result.Email))
+            if (await _repository.AnyAsync(u=>u.Email == userDto.Email))
             {
                 _logger.LogError($"User with email {userDto.Email} already exists.");
                 throw new DuplicateResourceException($"User with email {userDto.Email} already exists.");
@@ -158,8 +158,7 @@ namespace Task_Management_API.Application.Services
         }
         public async Task<bool> CheckUserExsitsById(Guid id)
         {
-            var user = await _repository.FindAsync(user => user.Id == id);
-            if (user == null)
+            if (await _repository.AnyAsync(user => user.Id == id))
             {
                 _logger.LogInformation($"User with ID {id} does not exist.");
                 return false;

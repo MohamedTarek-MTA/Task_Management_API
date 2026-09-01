@@ -22,6 +22,8 @@ namespace Task_Management_API.Infrastructure.Repositories
 
         public async Task AddRangeAsync(IEnumerable<T> entities) => await _dbSet.AddRangeAsync(entities);
 
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate) => await _dbSet.AnyAsync(predicate);
+
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate) =>
             await _dbSet.Where(predicate).ToListAsync();
 

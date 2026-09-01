@@ -1,7 +1,10 @@
 
 using Microsoft.EntityFrameworkCore;
 using Task_Management_API.API.Middlewares;
+using Task_Management_API.Application.Exceptions;
 using Task_Management_API.Application.Interfaces;
+using Task_Management_API.Application.Mappers;
+using Task_Management_API.Application.Services;
 using Task_Management_API.Infrastructure.Data;
 using Task_Management_API.Infrastructure.Repositories;
 
@@ -28,7 +31,22 @@ namespace Task_Management_API
 
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<ITaskItemService, TaskItemService>();
+            builder.Services.AddScoped<IProjectService, ProjectService>();
+            builder.Services.AddScoped<ITaskHistoryService, TaskHistoryService>();
+
+            builder.Services.AddScoped<UserMapper>();
+            builder.Services.AddScoped<TaskItemMapper>();
+            builder.Services.AddScoped<ProjectMapper>();
+            builder.Services.AddScoped<TaskHistoryMapper>();
+
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.AddProblemDetails();
+
             var app = builder.Build();
+
+            app.UseExceptionHandler();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
