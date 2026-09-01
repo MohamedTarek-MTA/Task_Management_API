@@ -13,9 +13,9 @@ namespace Task_Management_API.Application.Services
     public class ProjectService : IProjectService
     {
         private readonly ILogger<ProjectService> _logger;
-        private readonly Repository<Project> _repository;
+        private readonly IRepository<Project> _repository;
         private readonly ProjectMapper _projectMapper;
-        public ProjectService(ILogger<ProjectService> logger, Repository<Project> repository, ProjectMapper projectMapper)
+        public ProjectService(ILogger<ProjectService> logger, IRepository<Project> repository, ProjectMapper projectMapper)
         {
             _logger = logger;
             _repository = repository;
@@ -43,7 +43,7 @@ namespace Task_Management_API.Application.Services
                 .Select(project => _projectMapper.ToDTO(project))
                 .OrderBy(project => project.Name);
         }
-        public async Task<IPagedList<ProjectDTO>> GetAllProjectsAsync(int pageNumber, int pageSize)
+        public async Task<IPagedList<ProjectDTO>> GetAllProjectsPaged(int pageNumber, int pageSize)
         {
             var projects = await _repository.GetAllAsync();
             if (projects.IsNullOrEmpty())
@@ -142,8 +142,7 @@ namespace Task_Management_API.Application.Services
         }
         public async Task<bool> CheckProjectExsitsById(Guid id)
         {
-            var project = await _repository.GetByIdAsync(id);
-            if (project == null)
+            if (await _repository.AnyAsync(project => project.Id == id))
             {
                 _logger.LogWarning($"Project with ID {id} not found.");
                 return false;

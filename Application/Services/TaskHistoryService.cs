@@ -1,4 +1,5 @@
 ﻿using Task_Management_API.Application.DTOs;
+using Task_Management_API.Application.Interfaces;
 using Task_Management_API.Application.Mappers;
 using Task_Management_API.Domain.Entities;
 using Task_Management_API.Infrastructure.Repositories;
@@ -7,18 +8,18 @@ using X.PagedList.Extensions;
 
 namespace Task_Management_API.Application.Services
 {
-    public class TaskHistoryService
+    public class TaskHistoryService : ITaskHistoryService
     {
-        private readonly Repository<TaskHistory> _repository;
+        private readonly IRepository<TaskHistory> _repository;
         private readonly ILogger<TaskHistoryService> _logger;
         private readonly TaskHistoryMapper _taskHistoryMapper;
-        private readonly TaskItemService _taskItemService;
-        public TaskHistoryService(Repository<TaskHistory> repository, ILogger<TaskHistoryService> logger, TaskHistoryMapper taskHistoryMapper, TaskItemService taskItemService)
+        private readonly IRepository<TaskItem> _taskItemRepository;
+        public TaskHistoryService(IRepository<TaskHistory> repository, ILogger<TaskHistoryService> logger, TaskHistoryMapper taskHistoryMapper, IRepository<TaskItem> taskItemRepository)
         {
             _repository = repository;
             _logger = logger;
             _taskHistoryMapper = taskHistoryMapper;
-            _taskItemService = taskItemService;
+            _taskItemRepository = taskItemRepository;
         }
 
         public async Task<TaskHistoryDTO> GetTaskHistoryById(Guid id)
@@ -33,7 +34,7 @@ namespace Task_Management_API.Application.Services
         }
         public async Task<IPagedList<TaskHistoryDTO>> GetAllTaskItemHistory(Guid id, int pageNumber, int pageSize)
         {
-            if (await _taskItemService.CheckTaskItemExsitsById(id))
+            if (await _taskItemRepository.GetByIdAsync(id) != null)
             {
                 var taskHistorys = await _repository.FindAsync(th => th.TaskItemId == id);
                 return taskHistorys.

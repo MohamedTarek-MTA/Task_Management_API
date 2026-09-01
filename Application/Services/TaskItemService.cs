@@ -12,13 +12,13 @@ namespace Task_Management_API.Application.Services
 {
     public class TaskItemService : ITaskItemService
     {
-        private readonly Repository<TaskItem> _repository;
+        private readonly IRepository<TaskItem> _repository;
         private readonly ILogger<TaskItemService> _logger;
         private readonly TaskItemMapper _taskItemMapper;
-        private readonly ProjectService _projectService;
-        private readonly UserService _userService;
-        private readonly TaskHistoryService _taskHistoryService;
-        public TaskItemService(Repository<TaskItem> repository, ILogger<TaskItemService> logger, TaskItemMapper taskItemMapper, ProjectService projectService, UserService userService, TaskHistoryService taskHistoryService)
+        private readonly IProjectService _projectService;
+        private readonly IUserService _userService;
+        private readonly ITaskHistoryService _taskHistoryService;
+        public TaskItemService(IRepository<TaskItem> repository, ILogger<TaskItemService> logger, TaskItemMapper taskItemMapper, IProjectService projectService, IUserService userService, ITaskHistoryService taskHistoryService)
         {
             _repository = repository;
             _logger = logger;
@@ -98,6 +98,10 @@ namespace Task_Management_API.Application.Services
                 || project.ProjectStatus == ProjectStatus.CANCELLED)
             {
                 throw new ArgumentException("Task Needs To Be Assigned To A Valid Project.");
+            }
+            if(taskItemDTO.DueDate < DateTime.Now)
+            {
+                throw new ArgumentException("DueDate cannot be earlier than the current date.");
             }
             var taskItem = _taskItemMapper.ToEntity(taskItemDTO);
             await _repository.AddAsync(taskItem);
@@ -227,8 +231,7 @@ namespace Task_Management_API.Application.Services
 
         public async Task<bool> CheckTaskItemExsitsById(Guid id)
         {
-            var taskItem = await _repository.FindAsync(task => task.Id == id);
-            if (taskItem == null)
+            if (await _repository.AnyAsync(task => task.Id == id))
             {
                 _logger.LogWarning($"TaskItem with ID {id} not found.");
                 return false;
