@@ -31,11 +31,42 @@ namespace Task_Management_API.API.Controllers
             var users = await _userService.GetAllUsersPaged(pageNumber, pageSize);
             return Ok(users);
         }
+        [HttpGet("name")]
+        public async Task<IActionResult> GetAllUsersByName(
+            [FromQuery]string name,
+            int pageNumber = 1, 
+            [FromQuery] int pageSize = 10) 
+        {
+            var users = await _userService.GetAllUsersByName(name, pageNumber, pageSize);
+            return Ok(users);
+        }
+        [HttpGet("role")]
+        public async Task<IActionResult> GetAllUsersByRole(
+            [FromQuery] string role,
+            int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var users = await _userService.GetAllUsersByRole(role, pageNumber, pageSize);
+            return Ok(users);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] UserDTO userDTO)
         {
             var createdUser = await _userService.CreateUser(userDTO);
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
+        }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserDTO userDTO)
+        {
+            var updatedUser = await _userService.UpdateUser(id, userDTO);
+            return Ok(updatedUser);
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            await _userService.DeleteUser(id);
+            return NoContent();
         }
     }
 }
