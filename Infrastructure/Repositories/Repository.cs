@@ -29,6 +29,8 @@ namespace Task_Management_API.Infrastructure.Repositories
 
         public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
 
+        public IQueryable<T> GetQueryable() => _dbSet.AsNoTracking();
+
         public async Task<T?> GetByIdAsync<TId>(TId id) where TId : notnull => await _dbSet.FindAsync(id);
 
         public async Task<IPagedList<T>> GetPagedAsync(int pageNumber, int pageSize) => 

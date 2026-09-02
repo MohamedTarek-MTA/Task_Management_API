@@ -13,6 +13,8 @@ namespace Task_Management_API.Application.Interfaces
         Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
         Task<IPagedList<T>> GetPagedAsync(int pageNumber, int pageSize);
 
+        IQueryable<T> GetQueryable();
+
         //Write, Edit, Delete
         Task AddAsync(T entity);
         Task AddRangeAsync(IEnumerable<T> entities);

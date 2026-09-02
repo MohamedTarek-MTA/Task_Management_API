@@ -6,6 +6,7 @@ using Task_Management_API.Application.Mappers;
 using Task_Management_API.Domain.Entities;
 using Task_Management_API.Infrastructure.Repositories;
 using X.PagedList;
+using X.PagedList.EF;
 using X.PagedList.Extensions;
 
 namespace Task_Management_API.Application.Services
@@ -49,29 +50,48 @@ namespace Task_Management_API.Application.Services
 
         public async Task<IPagedList<UserDTO>> GetAllUsersPaged(int pageNumber, int pageSize)
         {
-            var users = await _repository.GetPagedAsync(pageNumber, pageSize);
+            var users = await _repository
+                .GetQueryable()
+                .OrderBy(u=>u.FullName)
+                .ToPagedListAsync(pageNumber, pageSize);
 
             if (users.IsNullOrEmpty())
             {
                 _logger.LogInformation("No users found.");
                 return new StaticPagedList<UserDTO>(new List<UserDTO>(), pageNumber, pageSize, 0);
             }
-            return users
+
+            var usersDto = users
                 .Select(user => _userMapper.ToDTO(user))
-                .OrderBy(user => user.FullName)
-                .ToPagedList(pageNumber, pageSize);
+                .ToList();
+
+            return new StaticPagedList<UserDTO>(
+                    usersDto,
+                    pageNumber,
+                    pageSize,
+                    users.TotalItemCount);
         }
-        public async Task<IEnumerable<UserDTO>> FindUsersByName(string name)
+        public async Task<IPagedList<UserDTO>> GetAllUsersByName(string name, int pageNumber, int pageSize)
         {
-            var users = await _repository.FindAsync(user => user.FullName.Equals(name));
+            var users = await _repository
+                .GetQueryable()
+                .Where(u => u.FullName.Contains(name))
+                .ToPagedListAsync(pageNumber, pageSize);
+
             if (users.IsNullOrEmpty())
             {
                 _logger.LogInformation("No users found matching the condition.");
-                return [];
+                return new StaticPagedList<UserDTO>(new List<UserDTO>(), pageNumber, pageSize, 0);
             }
-            return users
+            var usersDto = users
                 .Select(user => _userMapper.ToDTO(user))
-                .OrderBy(user => user.FullName);
+                .ToList();
+
+            return new StaticPagedList<UserDTO>(
+                    usersDto,
+                    pageNumber,
+                    pageSize,
+                    users.TotalItemCount);
         }
         public async Task<UserDTO> FindUserByEmail(string email)
         {
@@ -105,19 +125,14 @@ namespace Task_Management_API.Application.Services
 
         public async Task<UserDTO> UpdateUser(Guid id, UserDTO userDto)
         {
-            var existingUser = await _repository.GetByIdAsync(id);
-            if (existingUser == null)
-            {
-                _logger.LogWarning($"User with ID {id} not found.");
-                throw new KeyNotFoundException($"User with ID {id} not found.");
-            }
-            var updatedUser = _userMapper.ToEntity(userDto);
-            updatedUser.Id = id; 
-            if (updatedUser.Email.Equals(FindUserByEmail(userDto.Email).Result.Email))
+            if (await _repository.AnyAsync(u => u.Email == userDto.Email))
             {
                 _logger.LogError($"User with email {userDto.Email} already exists.");
                 throw new DuplicateResourceException($"User with email {userDto.Email} already exists.");
             }
+            var updatedUser = _userMapper.ToEntity(userDto);
+            updatedUser.Id = id; 
+            
             _repository.Update(updatedUser);
             var success = await _repository.SaveChangesAsync();
             if (!success)
@@ -145,16 +160,25 @@ namespace Task_Management_API.Application.Services
         }
         public async Task<IPagedList<UserDTO>> GetAllUsersByRole(string role, int pageNumber, int pageSize)
         {
-            var users = await _repository.FindAsync(user => user.Role.Equals(role));
+            var users = await _repository
+                .GetQueryable()
+                .Where(u => u.Role == role)
+                .ToPagedListAsync(pageNumber, pageSize);
+
             if (users.IsNullOrEmpty())
             {
                 _logger.LogInformation($"No users found with role: {role}");
                 return new StaticPagedList<UserDTO>(new List<UserDTO>(), pageNumber, pageSize, 0);
             }
-            return users
+            var usersDto = users
                 .Select(user => _userMapper.ToDTO(user))
-                .OrderBy(user => user.FullName)
-                .ToPagedList(pageNumber, pageSize);
+                .ToList();
+
+            return new StaticPagedList<UserDTO>(
+                    usersDto,
+                    pageNumber,
+                    pageSize,
+                    users.TotalItemCount);
         }
         public async Task<bool> CheckUserExsitsById(Guid id)
         {
