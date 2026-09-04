@@ -1,4 +1,4 @@
-﻿using Task_Management_API.Application.DTOs;
+﻿using Task_Management_API.Application.DTOs.TaskItemDTOs;
 using Task_Management_API.Domain.Enums;
 using X.PagedList;
 

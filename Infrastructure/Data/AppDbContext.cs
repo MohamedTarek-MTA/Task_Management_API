@@ -17,6 +17,22 @@ namespace Task_Management_API.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<TaskHistory>()
+                .Property(p => p.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Project>()
+                .Property(p=>p.StartDate)
+                .HasDefaultValueSql("GETDATE()")
+                .ValueGeneratedOnAdd();
+
             // Apply configurations from the assembly
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }

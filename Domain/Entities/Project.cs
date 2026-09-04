@@ -11,7 +11,7 @@ namespace Task_Management_API.Domain.Entities
         public string Name { get; set; }
         [Required,MaxLength(1000)]
         public string Description { get; set; }
-        public DateTime StartDate { get; set; } = DateTime.Now;
+        public DateTime StartDate { get; set; }
         public DateTime ? EndDate { get; set; }
         public ProjectStatus ProjectStatus { get; set; } = ProjectStatus.TODO;
         public virtual ICollection<TaskItem> TaskItems { get; set; } = new List<TaskItem>();

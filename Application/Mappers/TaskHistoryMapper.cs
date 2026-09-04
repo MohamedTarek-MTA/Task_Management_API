@@ -1,5 +1,5 @@
 ﻿using Riok.Mapperly.Abstractions;
-using Task_Management_API.Application.DTOs;
+using Task_Management_API.Application.DTOs.TaskHistoryDTOs;
 using Task_Management_API.Domain.Entities;
 
 namespace Task_Management_API.Application.Mappers

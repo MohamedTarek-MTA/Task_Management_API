@@ -28,7 +28,9 @@ namespace Task_Management_API.Infrastructure.Configurations
                 .WithOne()
                 .HasForeignKey(ti => ti.TaskItemId)
                 .OnDelete(DeleteBehavior.Cascade);
-            builder.Property(ti => ti.CreatedAt);
+            builder.Property(ti => ti.CreatedAt)
+                 .HasDefaultValueSql("GETDATE()")
+                 .ValueGeneratedOnAdd();
         }
     }
 }

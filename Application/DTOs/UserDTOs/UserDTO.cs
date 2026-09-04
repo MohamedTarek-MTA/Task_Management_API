@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Task_Management_API.Application.DTOs
+namespace Task_Management_API.Application.DTOs.UserDTOs
 {
     public class UserDTO
     {
@@ -11,6 +11,6 @@ namespace Task_Management_API.Application.DTOs
         public string  Email { get; set; }
         [Required]
         public string Role { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } 
     }
 }

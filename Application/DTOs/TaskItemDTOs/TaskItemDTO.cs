@@ -2,7 +2,7 @@
 using Task_Management_API.Domain.Entities;
 using Task_Management_API.Domain.Enums;
 
-namespace Task_Management_API.Application.DTOs
+namespace Task_Management_API.Application.DTOs.TaskItemDTOs
 {
     public class TaskItemDTO
     {
@@ -15,7 +15,7 @@ namespace Task_Management_API.Application.DTOs
         [Required]
         public TaskPriority Priority { get; set; }
         public DateTime DueDate { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } 
         public DateTime? CompletedAt { get; set; }
         [Required]
         public Guid ProjectId { get; set; }

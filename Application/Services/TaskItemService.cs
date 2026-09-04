@@ -1,9 +1,10 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using Task_Management_API.Application.DTOs;
+using Task_Management_API.Application.DTOs.TaskItemDTOs;
 using Task_Management_API.Application.Interfaces;
 using Task_Management_API.Application.Mappers;
 using Task_Management_API.Domain.Entities;
 using Task_Management_API.Domain.Enums;
+using Task_Management_API.Application.DTOs.TaskHistoryDTOs;
 using Task_Management_API.Infrastructure.Repositories;
 using X.PagedList;
 using X.PagedList.Extensions;
@@ -53,41 +54,45 @@ namespace Task_Management_API.Application.Services
         }
         public async Task<IPagedList<TaskItemDTO>> GetAllTaskItemsByProjectId(Guid projectId, int pageNumber, int pageSize)
         {
-            var taskItems = await _repository.GetAllAsync();
+            var taskItems = _repository.GetQueryable()
+                .Where(ti => ti.ProjectId == projectId)
+                .OrderByDescending(ti => ti.CreatedAt)
+                .ToPagedList(pageNumber, pageSize);
+
             if (taskItems.IsNullOrEmpty())
             {
                 _logger.LogInformation($"No task items found for project ID {projectId}.");
                 return new StaticPagedList<TaskItemDTO>(new List<TaskItemDTO>(), pageNumber, pageSize, 0);
             }
-            var filteredTaskItems = taskItems.Where(taskItem => taskItem.ProjectId == projectId);
-            if (filteredTaskItems.IsNullOrEmpty())
-            {
-                _logger.LogInformation($"No task items found for project ID {projectId}.");
-                return new StaticPagedList<TaskItemDTO>(new List<TaskItemDTO>(), pageNumber, pageSize, 0);
-            }
-            return filteredTaskItems
+            var taskItemDTOs = taskItems
                 .Select(taskItem => _taskItemMapper.ToDTO(taskItem))
-                .OrderBy(taskItem => taskItem.CreatedAt)
-                .ToPagedList();
+                .ToList();
+            return new StaticPagedList<TaskItemDTO>(
+                taskItemDTOs,
+                pageNumber,
+                pageSize,
+                taskItems.TotalItemCount);
+
         }
         public async Task<IPagedList<TaskItemDTO>> GetAllTaskItemsByAssignedUserId(Guid userId, int pageNumber, int pageSize)
         {
-            var taskItems = await _repository.GetAllAsync();
+            var taskItems = _repository.GetQueryable()
+                .Where(ti => ti.AssignedUserId == userId)
+                .OrderByDescending(ti => ti.CreatedAt)
+                .ToPagedList(pageNumber, pageSize);
             if (taskItems.IsNullOrEmpty())
             {
                 _logger.LogInformation($"No task items found for assigned user ID {userId}.");
                 return new StaticPagedList<TaskItemDTO>(new List<TaskItemDTO>(), pageNumber, pageSize, 0);
             }
-            var filteredTaskItems = taskItems.Where(taskItem => taskItem.AssignedUserId == userId);
-            if (filteredTaskItems.IsNullOrEmpty())
-            {
-                _logger.LogInformation($"No task items found for assigned user ID {userId}.");
-                return new StaticPagedList<TaskItemDTO>(new List<TaskItemDTO>(), pageNumber, pageSize, 0);
-            }
-            return filteredTaskItems
+            var taskItemDTOs = taskItems
                 .Select(taskItem => _taskItemMapper.ToDTO(taskItem))
-                .OrderBy(taskItem => taskItem.CreatedAt)
-                .ToPagedList(pageNumber, pageSize);
+                .ToList();
+            return new StaticPagedList<TaskItemDTO>(
+                taskItemDTOs,
+                pageNumber,
+                pageSize,
+                taskItems.TotalItemCount);
         }
         public async Task<TaskItemDTO> CreateTaskItem(TaskItemDTO taskItemDTO)
         {
@@ -143,7 +148,7 @@ namespace Task_Management_API.Application.Services
                 _logger.LogError("Failed to assign task to user.");
                 throw new Exception("Failed to assign task to user.");
             }
-            var taskHistoryDTO = new TaskHistoryDTO
+            var taskHistoryDTO = new TaskHistoryDTO 
             {
                 TaskItemId = taskItem.Id,
                 Action = "Task Assigned",

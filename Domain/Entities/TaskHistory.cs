@@ -13,6 +13,6 @@ namespace Task_Management_API.Domain.Entities
         public string? OldValue { get; set; }
         [MaxLength(500)]
         public string? NewValue { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } 
     }
 }
