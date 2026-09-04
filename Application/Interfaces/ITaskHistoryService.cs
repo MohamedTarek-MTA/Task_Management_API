@@ -1,4 +1,4 @@
-﻿using Task_Management_API.Application.DTOs;
+﻿using Task_Management_API.Application.DTOs.TaskHistoryDTOs;
 using X.PagedList;
 
 namespace Task_Management_API.Application.Interfaces

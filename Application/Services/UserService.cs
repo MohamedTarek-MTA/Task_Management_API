@@ -1,5 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using Task_Management_API.Application.DTOs;
+using Task_Management_API.Application.DTOs.UserDTOs;
 using Task_Management_API.Application.Exceptions;
 using Task_Management_API.Application.Interfaces;
 using Task_Management_API.Application.Mappers;
@@ -131,8 +131,8 @@ namespace Task_Management_API.Application.Services
                 throw new DuplicateResourceException($"User with email {userDto.Email} already exists.");
             }
             var updatedUser = _userMapper.ToEntity(userDto);
-            updatedUser.Id = id; 
-            
+            updatedUser.Id = id;
+
             _repository.Update(updatedUser);
             var success = await _repository.SaveChangesAsync();
             if (!success)

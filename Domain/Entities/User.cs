@@ -15,7 +15,7 @@ namespace Task_Management_API.Domain.Entities
         public string Role { get; set; }
         [Required,EmailAddress, MaxLength(200)]
         public string Email { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } 
         public virtual ICollection<TaskItem> TaskItems { get; set; } = new List<TaskItem>();
     }
 }

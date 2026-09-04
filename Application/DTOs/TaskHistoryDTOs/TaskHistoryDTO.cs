@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Task_Management_API.Application.DTOs
+namespace Task_Management_API.Application.DTOs.TaskHistoryDTOs
 {
     public class TaskHistoryDTO
     {
@@ -9,6 +9,6 @@ namespace Task_Management_API.Application.DTOs
         public string Action { get; set; }
         public string? OldValue { get; set; }
         public string? NewValue { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; }
     }
 }

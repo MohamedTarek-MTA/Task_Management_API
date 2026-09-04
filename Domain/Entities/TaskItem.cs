@@ -16,7 +16,7 @@ namespace Task_Management_API.Domain.Entities
         public TaskPriority Priority   { get; set; }
         [Required]
         public DateTime DueDate { get; set; }
-        public DateTime CreatedAt {  get; set; } = DateTime.Now;
+        public DateTime CreatedAt {  get; set; } 
         public DateTime? CompletedAt {  get; set; }
         [Required]
         public Guid ProjectId { get; set; }

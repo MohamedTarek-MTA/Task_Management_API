@@ -1,4 +1,4 @@
-﻿using Task_Management_API.Application.DTOs;
+﻿using Task_Management_API.Application.DTOs.TaskHistoryDTOs;
 using Task_Management_API.Application.Interfaces;
 using Task_Management_API.Application.Mappers;
 using Task_Management_API.Domain.Entities;
@@ -34,13 +34,22 @@ namespace Task_Management_API.Application.Services
         }
         public async Task<IPagedList<TaskHistoryDTO>> GetAllTaskItemHistory(Guid id, int pageNumber, int pageSize)
         {
-            if (await _taskItemRepository.GetByIdAsync(id) != null)
+            if (await _taskItemRepository.AnyAsync(ti => ti.Id == id))
             {
-                var taskHistorys = await _repository.FindAsync(th => th.TaskItemId == id);
-                return taskHistorys.
-                    Select(th => _taskHistoryMapper.ToDTO(th))
+                var taskHistorys = _repository.GetQueryable()
+                    .Where(th => th.TaskItemId == id)
                     .OrderByDescending(th => th.CreatedAt)
                     .ToPagedList(pageNumber, pageSize);
+                
+                var taskHistoryDTOs = taskHistorys
+                    .Select(th => _taskHistoryMapper.ToDTO(th))
+                    .ToList();
+
+                return new StaticPagedList<TaskHistoryDTO>(
+                   taskHistoryDTOs,
+                   pageNumber,
+                   pageSize,
+                   taskHistorys.TotalItemCount);
             }
             else
             {

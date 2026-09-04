@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Task_Management_API.Application.DTOs;
+using Task_Management_API.Application.DTOs.UserDTOs;
 using Task_Management_API.Application.Interfaces;
 using Task_Management_API.Application.Services;
 
 namespace Task_Management_API.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]s")]
+    [Route("api/users")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -56,12 +56,12 @@ namespace Task_Management_API.API.Controllers
             var createdUser = await _userService.CreateUser(userDTO);
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
         }
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserDTO userDTO)
-        {
-            var updatedUser = await _userService.UpdateUser(id, userDTO);
-            return Ok(updatedUser);
-        }
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserDTO userDTO)
+        //{
+        //    var updatedUser = await _userService.UpdateUser(id, userDTO);
+        //    return Ok(updatedUser);
+        //}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
