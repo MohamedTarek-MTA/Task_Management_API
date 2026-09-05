@@ -93,7 +93,7 @@ namespace Task_Management_API.Application.Services
                     pageSize,
                     users.TotalItemCount);
         }
-        public async Task<UserDTO> FindUserByEmail(string email)
+        public async Task<UserDTO> GetUserByEmail(string email)
         {
             var users = await _repository.FindAsync(user => user.Email.Equals(email));
             var user = users.FirstOrDefault();
@@ -105,7 +105,7 @@ namespace Task_Management_API.Application.Services
             return _userMapper.ToDTO(user);
         }
 
-        public async Task<UserDTO> CreateUser(UserDTO userDto)
+        public async Task<UserDTO> CreateUser(CreateUserDTO userDto)
         {
             if (await _repository.AnyAsync(u=>u.Email == userDto.Email))
             {
@@ -123,24 +123,22 @@ namespace Task_Management_API.Application.Services
             return _userMapper.ToDTO(user);
         }
 
-        public async Task<UserDTO> UpdateUser(Guid id, UserDTO userDto)
+        public async Task<UserDTO> UpdateUser(Guid id, UpdateUserDTO userDto)
         {
-            if (await _repository.AnyAsync(u => u.Email == userDto.Email))
+            var existingUser = await _repository.GetByIdAsync(id);
+            if (existingUser == null)
             {
                 _logger.LogError($"User with email {userDto.Email} already exists.");
                 throw new DuplicateResourceException($"User with email {userDto.Email} already exists.");
             }
-            var updatedUser = _userMapper.ToEntity(userDto);
-            updatedUser.Id = id;
-
-            _repository.Update(updatedUser);
+            _userMapper.Map(userDto, existingUser);
             var success = await _repository.SaveChangesAsync();
             if (!success)
             {
                 _logger.LogError("Failed to update user.");
                 throw new Exception("Failed to update user.");
             }
-            return _userMapper.ToDTO(updatedUser);
+            return _userMapper.ToDTO(existingUser);
         }
         public async Task DeleteUser(Guid id)
         {

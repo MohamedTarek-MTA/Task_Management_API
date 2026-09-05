@@ -9,5 +9,9 @@ namespace Task_Management_API.Application.Mappers
     {
         public partial UserDTO ToDTO(User user);
         public partial User ToEntity(UserDTO userDTO);
+
+        public partial User ToEntity(CreateUserDTO createUserDTO);
+        public partial CreateUserDTO ToCreationDTO(User user);
+        public partial void Map(UpdateUserDTO userDTO, [MappingTarget] User user);
     }
 }

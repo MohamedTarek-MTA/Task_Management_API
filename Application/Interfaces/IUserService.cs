@@ -9,9 +9,9 @@ namespace Task_Management_API.Application.Interfaces
         public Task<IEnumerable<UserDTO>> GetAllUsers();
         public Task<IPagedList<UserDTO>> GetAllUsersPaged(int pageNumber, int pageSize);
         public Task<IPagedList<UserDTO>> GetAllUsersByName(string name, int pageNumber, int pageSize);
-        public Task<UserDTO> FindUserByEmail(string email);
-        public Task<UserDTO> CreateUser(UserDTO userDto);
-        public Task<UserDTO> UpdateUser(Guid id, UserDTO userDto);
+        public Task<UserDTO> GetUserByEmail(string email);
+        public Task<UserDTO> CreateUser(CreateUserDTO userDto);
+        public Task<UserDTO> UpdateUser(Guid id, UpdateUserDTO userDto);
         public Task DeleteUser(Guid id);
         public Task<IPagedList<UserDTO>> GetAllUsersByRole(string role, int pageNumber, int pageSize);
         public Task<bool> CheckUserExsitsById(Guid id);

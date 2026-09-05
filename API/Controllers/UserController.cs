@@ -51,17 +51,17 @@ namespace Task_Management_API.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] UserDTO userDTO)
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO userDTO)
         {
             var createdUser = await _userService.CreateUser(userDTO);
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
         }
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserDTO userDTO)
-        //{
-        //    var updatedUser = await _userService.UpdateUser(id, userDTO);
-        //    return Ok(updatedUser);
-        //}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDTO userDTO)
+        {
+            var updatedUser = await _userService.UpdateUser(id, userDTO);
+            return Ok(updatedUser);
+        }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
