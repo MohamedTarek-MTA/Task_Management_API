@@ -10,10 +10,12 @@ namespace Task_Management_API.API.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ITaskItemService _taskItemService;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, ITaskItemService taskItemService)
         {
             _userService = userService;
+            _taskItemService = taskItemService;
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(Guid id)
@@ -67,6 +69,12 @@ namespace Task_Management_API.API.Controllers
         {
             await _userService.DeleteUser(id);
             return NoContent();
+        }
+        [HttpGet("{id}/tasks")]
+        public async Task<IActionResult> GetUserTasks(Guid id, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var userTasks = await _taskItemService.GetAllTaskItemsByAssignedUserId(id, pageNumber, pageSize);
+            return Ok(userTasks);
         }
     }
 }

@@ -10,9 +10,11 @@ namespace Task_Management_API.API.Controllers
     public class ProjectController : ControllerBase
     {
         private readonly IProjectService _projectService;
-        public ProjectController(IProjectService projectService) 
+        private readonly ITaskItemService _taskItemService;
+        public ProjectController(IProjectService projectService, ITaskItemService taskItemService)
         {
             _projectService = projectService;
+            _taskItemService = taskItemService;
         }
 
         [HttpGet]
@@ -58,6 +60,12 @@ namespace Task_Management_API.API.Controllers
             }
             await _projectService.DeleteProject(id);
             return NoContent();
+        }
+        [HttpGet("{projectId}/taskitems")]
+        public async Task<IActionResult> GetProjectTaskItems(Guid projectId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var projectTaskItems = await _taskItemService.GetAllTaskItemsByProjectId(projectId, pageNumber, pageSize);
+            return Ok(projectTaskItems);
         }
     }
 }

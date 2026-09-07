@@ -180,12 +180,7 @@ namespace Task_Management_API.Application.Services
         }
         public async Task<bool> CheckUserExsitsById(Guid id)
         {
-            if (await _repository.AnyAsync(user => user.Id == id))
-            {
-                _logger.LogInformation($"User with ID {id} does not exist.");
-                return false;
-            }
-            return true;
+            return await _repository.AnyAsync(user => user.Id == id);
         }
     }
 }
