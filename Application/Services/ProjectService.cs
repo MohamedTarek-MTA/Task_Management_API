@@ -15,11 +15,13 @@ namespace Task_Management_API.Application.Services
     {
         private readonly ILogger<ProjectService> _logger;
         private readonly IRepository<Project> _repository;
+        private readonly IRepository<TaskItem> _taskItemRepository;
         private readonly ProjectMapper _projectMapper;
-        public ProjectService(ILogger<ProjectService> logger, IRepository<Project> repository, ProjectMapper projectMapper)
+        public ProjectService(ILogger<ProjectService> logger, IRepository<Project> repository, IRepository<TaskItem> taskItemRepository, ProjectMapper projectMapper)
         {
             _logger = logger;
             _repository = repository;
+            _taskItemRepository = taskItemRepository;
             _projectMapper = projectMapper;
         }
         public async Task<ProjectDTO> GetProjectById(Guid id)
@@ -108,24 +110,42 @@ namespace Task_Management_API.Application.Services
         public async Task DeleteProject(Guid id)
         {
             var existingProject = await _repository.GetByIdAsync(id);
+
             if (existingProject == null)
             {
-                _logger.LogWarning($"Project with ID {id} not found.");
-                throw new KeyNotFoundException($"Project with ID {id} not found.");
+                _logger.LogWarning(
+                    "Project with ID {ProjectId} not found.",
+                    id);
+
+                throw new KeyNotFoundException(
+                    $"Project with ID {id} not found.");
             }
-            foreach (var taskItem in existingProject.TaskItems)
+
+            var hasActiveTasks = await _taskItemRepository.AnyAsync(
+                task => task.ProjectId == id &&
+                        task.Status != TaskItemStatus.COMPLETED &&
+                        task.Status != TaskItemStatus.CANCELLED);
+
+            if (hasActiveTasks)
             {
-                if (!taskItem.Status.Equals(TaskItemStatus.COMPLETED) || !taskItem.Status.Equals(TaskItemStatus.CANCELLED))
-                {
-                    _logger.LogWarning($"Cannot delete project with ID {id} because it has incomplete tasks.");
-                    throw new InvalidOperationException($"Cannot delete project with ID {id} because it has incomplete tasks.");
-                }
+                _logger.LogWarning(
+                    "Cannot delete project {ProjectId} because it contains active tasks.",
+                    id);
+
+                throw new InvalidOperationException(
+                    "Cannot delete the project because it contains active tasks.");
             }
+
             _repository.Remove(existingProject);
+
             var success = await _repository.SaveChangesAsync();
+
             if (!success)
             {
-                _logger.LogError("Failed to delete project.");
+                _logger.LogError(
+                    "Failed to delete project {ProjectId}.",
+                    id);
+
                 throw new Exception("Failed to delete project.");
             }
         }
@@ -176,12 +196,7 @@ namespace Task_Management_API.Application.Services
         }
         public async Task<bool> CheckProjectExsitsById(Guid id)
         {
-            if (await _repository.AnyAsync(project => project.Id == id))
-            {
-                _logger.LogWarning($"Project with ID {id} not found.");
-                return false;
-            }
-            return true;
+            return await _repository.AnyAsync(project => project.Id == id);
         }
         public async Task<ProjectDTO> ChangeProjectStatus(Guid id, ProjectStatus newStatus)
         {

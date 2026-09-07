@@ -40,17 +40,24 @@ namespace Task_Management_API.Application.Services
             return _taskItemMapper.ToDTO(taskItem);
         }
 
-        public async Task<IEnumerable<TaskItemDTO>> GetAllTaskItems()
+        public async Task<IPagedList<TaskItemDTO>> GetAllTaskItems(int pageNumber, int pageSize)
         {
-            var taskItems = await _repository.GetAllAsync();
+            var taskItems =  _repository.GetQueryable()
+                .OrderByDescending(ti => ti.CreatedAt)
+                .ToPagedList(pageNumber,pageSize);
             if (taskItems.IsNullOrEmpty())
             {
                 _logger.LogInformation("No task items found.");
-                return [];
+                return new StaticPagedList<TaskItemDTO>(new List<TaskItemDTO>(),pageNumber,pageSize,0);
             }
-            return taskItems
+            var taskItemDTOs = taskItems
                 .Select(taskItem => _taskItemMapper.ToDTO(taskItem))
-                .OrderBy(taskItem => taskItem.CreatedAt);
+                .ToList();
+            return new StaticPagedList<TaskItemDTO>(
+                taskItemDTOs,
+                pageNumber,
+                pageSize,
+                taskItems.TotalItemCount);
         }
         public async Task<IPagedList<TaskItemDTO>> GetAllTaskItemsByProjectId(Guid projectId, int pageNumber, int pageSize)
         {
@@ -94,7 +101,7 @@ namespace Task_Management_API.Application.Services
                 pageSize,
                 taskItems.TotalItemCount);
         }
-        public async Task<TaskItemDTO> CreateTaskItem(TaskItemDTO taskItemDTO)
+        public async Task<TaskItemDTO> CreateTaskItem(CreateTaskItemDTO taskItemDTO)
         {
             var project = await _projectService.GetProjectById(taskItemDTO.ProjectId);
             if (taskItemDTO.ProjectId == Guid.Empty 
@@ -135,13 +142,13 @@ namespace Task_Management_API.Application.Services
                 _logger.LogWarning($"TaskItem with ID {taskItemId} not found.");
                 throw new KeyNotFoundException($"TaskItem with ID {taskItemId} not found.");
             }
-            var user = await _userService.CheckUserExsitsById(userId);
-            if (!user)
+            if (! await _userService.CheckUserExsitsById(userId))
             {
                 throw new ArgumentException("Task Needs To Be Assigned To A Valid User.");
             }
-            taskItem.AssignedUserId = userId;
-            _repository.Update(taskItem);
+            var updatedTaskItem = _taskItemMapper.ToUpdateDTO(taskItem);
+            updatedTaskItem.AssignedUserId = userId;
+            _taskItemMapper.Map(updatedTaskItem,taskItem);
             var success = await _repository.SaveChangesAsync();
             if (!success)
             {
@@ -168,8 +175,10 @@ namespace Task_Management_API.Application.Services
                 throw new KeyNotFoundException($"TaskItem with ID {id} not found.");
             }
             var oldStatus = existingTaskItem.Status;
-            existingTaskItem.Status = taskItemStatus;
-            _repository.Update(existingTaskItem);
+            var updatedTaskItem = _taskItemMapper.ToUpdateDTO(existingTaskItem);
+            updatedTaskItem.Status = taskItemStatus;
+
+            _taskItemMapper.Map(updatedTaskItem, existingTaskItem);
             var success = await _repository.SaveChangesAsync();
             if (!success)
             {
@@ -187,7 +196,7 @@ namespace Task_Management_API.Application.Services
             await _taskHistoryService.CreateTaskHistory(taskHistoryDTO);
             return _taskItemMapper.ToDTO(existingTaskItem);
         }
-        public async Task<TaskItemDTO> UpdateTaskItem(Guid id, TaskItemDTO taskItemDTO)
+        public async Task<TaskItemDTO> UpdateTaskItem(Guid id, UpdateTaskItemDTO taskItemDTO)
         {
             var existingTaskItem = await _repository.GetByIdAsync(id);
             if (existingTaskItem == null)
@@ -196,9 +205,7 @@ namespace Task_Management_API.Application.Services
                 throw new KeyNotFoundException($"TaskItem with ID {id} not found.");
             }
             var oldTaskItem = existingTaskItem;
-            var updatedTaskItem = _taskItemMapper.ToEntity(taskItemDTO);
-            updatedTaskItem.Id = existingTaskItem.Id; 
-            _repository.Update(updatedTaskItem);
+            _taskItemMapper.Map(taskItemDTO, existingTaskItem);
             var success = await _repository.SaveChangesAsync();
             if (!success)
             {
@@ -211,11 +218,11 @@ namespace Task_Management_API.Application.Services
                 Action = "Task Updated",
                 CreatedAt = DateTime.Now,
                 OldValue = $"Task '{oldTaskItem.Title}' had status '{oldTaskItem.Status}' and priority '{oldTaskItem.Priority}' and assigned to user with ID {oldTaskItem.AssignedUserId}.",
-                NewValue = $"Task '{updatedTaskItem.Title}' updated to status '{updatedTaskItem.Status}' and priority '{updatedTaskItem.Priority}'."
+                NewValue = $"Task '{taskItemDTO.Title}' updated to status '{taskItemDTO.Status}' and priority '{taskItemDTO.Priority}'."
             };
             await _taskHistoryService.CreateTaskHistory(taskHistoryDTO);
 
-            return _taskItemMapper.ToDTO(updatedTaskItem);
+            return _taskItemMapper.ToDTO(existingTaskItem);
         }
         public async Task DeleteTaskItem(Guid id) 
         {
@@ -236,12 +243,7 @@ namespace Task_Management_API.Application.Services
 
         public async Task<bool> CheckTaskItemExsitsById(Guid id)
         {
-            if (await _repository.AnyAsync(task => task.Id == id))
-            {
-                _logger.LogWarning($"TaskItem with ID {id} not found.");
-                return false;
-            }
-            return true;
+            return await _repository.AnyAsync(task => task.Id == id);
         }
     }
 }
