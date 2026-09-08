@@ -25,6 +25,7 @@ namespace Task_Management_API.Application.Exceptions
                 ArgumentException => StatusCodes.Status400BadRequest,
                 DuplicateResourceException => StatusCodes.Status409Conflict,
                 ForbiddenAccessException => StatusCodes.Status403Forbidden,
+                InvalidOperationException => StatusCodes.Status409Conflict,
                 _ => StatusCodes.Status500InternalServerError
             };
             string userFriendlyMessage = statusCode == StatusCodes.Status500InternalServerError
