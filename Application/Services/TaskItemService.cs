@@ -174,10 +174,17 @@ namespace Task_Management_API.Application.Services
                 _logger.LogWarning($"TaskItem with ID {id} not found.");
                 throw new KeyNotFoundException($"TaskItem with ID {id} not found.");
             }
+            if(existingTaskItem.Status == TaskItemStatus.COMPLETED || existingTaskItem.Status == TaskItemStatus.CANCELLED)
+            {
+                throw new InvalidOperationException($"Couldn't change status because it's already {existingTaskItem.Status}");
+            }
             var oldStatus = existingTaskItem.Status;
             var updatedTaskItem = _taskItemMapper.ToUpdateDTO(existingTaskItem);
             updatedTaskItem.Status = taskItemStatus;
-
+            if(updatedTaskItem.Status == TaskItemStatus.COMPLETED)
+            {
+                updatedTaskItem.CompletedAt = DateTime.Now;
+            }
             _taskItemMapper.Map(updatedTaskItem, existingTaskItem);
             var success = await _repository.SaveChangesAsync();
             if (!success)
