@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../Task_Management_API.Tests/Task_Management_API.Tests.csproj" Id="4932aaff-7d47-421f-a8fb-8c084569235b" />
   <Project Path="Task_Management_API.csproj" />
 </Solution>

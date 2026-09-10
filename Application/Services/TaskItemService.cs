@@ -19,6 +19,9 @@ namespace Task_Management_API.Application.Services
         private readonly IProjectService _projectService;
         private readonly IUserService _userService;
         private readonly ITaskHistoryService _taskHistoryService;
+        private ILogger<TaskItemService> object1;
+        private IRepository<TaskItem> object2;
+
         public TaskItemService(IRepository<TaskItem> repository, ILogger<TaskItemService> logger, TaskItemMapper taskItemMapper, IProjectService projectService, IUserService userService, ITaskHistoryService taskHistoryService)
         {
             _repository = repository;
@@ -27,6 +30,13 @@ namespace Task_Management_API.Application.Services
             _projectService = projectService;
             _userService = userService;
             _taskHistoryService = taskHistoryService;
+        }
+
+        public TaskItemService(ILogger<TaskItemService> object1, IRepository<TaskItem> object2, TaskItemMapper taskItemMapper)
+        {
+            this.object1 = object1;
+            this.object2 = object2;
+            _taskItemMapper = taskItemMapper;
         }
 
         public async Task<TaskItemDTO> GetTaskItemById(Guid id)
