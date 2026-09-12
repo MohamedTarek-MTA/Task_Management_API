@@ -45,7 +45,7 @@ namespace Task_Management_API.Application.Services
             var taskItems =  _repository.GetQueryable()
                 .OrderByDescending(ti => ti.CreatedAt)
                 .ToPagedList(pageNumber,pageSize);
-            if (taskItems.IsNullOrEmpty())
+            if (taskItems== null)
             {
                 _logger.LogInformation("No task items found.");
                 return new StaticPagedList<TaskItemDTO>(new List<TaskItemDTO>(),pageNumber,pageSize,0);
@@ -66,7 +66,7 @@ namespace Task_Management_API.Application.Services
                 .OrderByDescending(ti => ti.CreatedAt)
                 .ToPagedList(pageNumber, pageSize);
 
-            if (taskItems.IsNullOrEmpty())
+            if (taskItems==null)
             {
                 _logger.LogInformation($"No task items found for project ID {projectId}.");
                 return new StaticPagedList<TaskItemDTO>(new List<TaskItemDTO>(), pageNumber, pageSize, 0);
@@ -87,7 +87,7 @@ namespace Task_Management_API.Application.Services
                 .Where(ti => ti.AssignedUserId == userId)
                 .OrderByDescending(ti => ti.CreatedAt)
                 .ToPagedList(pageNumber, pageSize);
-            if (taskItems.IsNullOrEmpty())
+            if (taskItems== null)
             {
                 _logger.LogInformation($"No task items found for assigned user ID {userId}.");
                 return new StaticPagedList<TaskItemDTO>(new List<TaskItemDTO>(), pageNumber, pageSize, 0);

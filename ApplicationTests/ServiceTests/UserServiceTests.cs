@@ -6,6 +6,7 @@ using Task_Management_API.Application.Interfaces;
 using Task_Management_API.Application.Mappers;
 using Task_Management_API.Application.Services;
 using Task_Management_API.Domain.Entities;
+using Task_Management_API.Domain.Enums;
 using Task_Management_API.Tests.Helpers;
 using Xunit;
 
@@ -17,8 +18,9 @@ public class UserServiceTests
     private readonly IRepository<User> _repository = Substitute.For<IRepository<User>>();
     private readonly UserMapper _mapper = new();
     private readonly UserService _sut;
+    private readonly IPasswordService _passwordService = Substitute.For<IPasswordService>();
 
-    public UserServiceTests() => _sut = new UserService(_logger, _repository, _mapper);
+    public UserServiceTests() => _sut = new UserService(_logger, _repository, _mapper, _passwordService);
 
     [Fact]
     public async Task GetUserById_WhenUserExists_ReturnsUserDto()
@@ -91,7 +93,7 @@ public class UserServiceTests
         {
             FullName = "Bob",
             Email = "bob@test.com",
-            Role = "Manager"
+            Role = Role.USER
         };
         _repository.AnyAsync(Arg.Any<System.Linq.Expressions.Expression<Func<User, bool>>>())
             .Returns(true);
@@ -106,7 +108,7 @@ public class UserServiceTests
         {
             FullName = "Bob",
             Email = "bob@test.com",
-            Role = "Manager"
+            Role = Role.ADMIN
         };
         _repository.AnyAsync(Arg.Any<System.Linq.Expressions.Expression<Func<User, bool>>>())
             .Returns(false);
@@ -121,7 +123,7 @@ public class UserServiceTests
     [Fact]
     public async Task CreateUser_WhenSaveFails_ThrowsException()
     {
-        var dto = new CreateUserDTO { FullName = "Bob", Email = "bob@test.com", Role = "Manager" };
+        var dto = new CreateUserDTO { FullName = "Bob", Email = "bob@test.com", Role = Role.USER };
         _repository.AnyAsync(Arg.Any<System.Linq.Expressions.Expression<Func<User, bool>>>()).Returns(false);
         _repository.SaveChangesAsync().Returns(false);
 

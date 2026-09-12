@@ -11,12 +11,14 @@ public static class TestData
     public static User CreateUser(
         string fullName = "Alice Smith",
         string email = "alice@test.com",
-        string role = "Developer")
+        string password = "P@$$w0rd",
+        Role role = Role.ADMIN)
         => new()
         {
             Id = Guid.NewGuid(),
             FullName = fullName,
             Email = email,
+            PasswordHash = password,
             Role = role,
             CreatedAt = DateTime.UtcNow
         };

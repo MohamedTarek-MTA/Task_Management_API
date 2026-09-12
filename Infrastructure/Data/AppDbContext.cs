@@ -18,11 +18,6 @@ namespace Task_Management_API.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<User>()
-                .Property(u => u.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .ValueGeneratedOnAdd();
-
             modelBuilder.Entity<TaskHistory>()
                 .Property(p => p.CreatedAt)
                 .HasDefaultValueSql("GETDATE()")

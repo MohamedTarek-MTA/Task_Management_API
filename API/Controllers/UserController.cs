@@ -2,6 +2,7 @@
 using Task_Management_API.Application.DTOs.UserDTOs;
 using Task_Management_API.Application.Interfaces;
 using Task_Management_API.Application.Services;
+using Task_Management_API.Domain.Enums;
 
 namespace Task_Management_API.API.Controllers
 {
@@ -44,7 +45,7 @@ namespace Task_Management_API.API.Controllers
         }
         [HttpGet("role")]
         public async Task<IActionResult> GetAllUsersByRole(
-            [FromQuery] string role,
+            [FromQuery] Role role,
             int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {

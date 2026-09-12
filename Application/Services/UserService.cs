@@ -4,7 +4,7 @@ using Task_Management_API.Application.Exceptions;
 using Task_Management_API.Application.Interfaces;
 using Task_Management_API.Application.Mappers;
 using Task_Management_API.Domain.Entities;
-using Task_Management_API.Infrastructure.Repositories;
+using Task_Management_API.Domain.Enums;
 using X.PagedList;
 using X.PagedList.EF;
 using X.PagedList.Extensions;
@@ -16,12 +16,14 @@ namespace Task_Management_API.Application.Services
         private readonly ILogger<UserService> _logger;
         private readonly IRepository<User> _repository;
         private readonly UserMapper _userMapper;
+        private readonly IPasswordService _passwordService;
 
-        public UserService(ILogger<UserService> logger, IRepository<User> repository, UserMapper userMapper)
+        public UserService(ILogger<UserService> logger, IRepository<User> repository, UserMapper userMapper, IPasswordService passwordService)
         {
             _logger = logger;
             _repository = repository;
             _userMapper = userMapper;
+            _passwordService = passwordService;
         }
 
         public async Task<UserDTO> GetUserById(Guid id)
@@ -38,7 +40,7 @@ namespace Task_Management_API.Application.Services
         public async Task<IEnumerable<UserDTO>> GetAllUsers()
         {
             var users = await _repository.GetAllAsync();
-            if (users.IsNullOrEmpty())
+            if (users==null)
             {
                 _logger.LogInformation("No users found.");
                 return [];
@@ -55,7 +57,7 @@ namespace Task_Management_API.Application.Services
                 .OrderBy(u=>u.FullName)
                 .ToPagedListAsync(pageNumber, pageSize);
 
-            if (users.IsNullOrEmpty())
+            if (users==null)
             {
                 _logger.LogInformation("No users found.");
                 return new StaticPagedList<UserDTO>(new List<UserDTO>(), pageNumber, pageSize, 0);
@@ -78,7 +80,7 @@ namespace Task_Management_API.Application.Services
                 .Where(u => u.FullName.Contains(name))
                 .ToPagedListAsync(pageNumber, pageSize);
 
-            if (users.IsNullOrEmpty())
+            if (users==null)
             {
                 _logger.LogInformation("No users found matching the condition.");
                 return new StaticPagedList<UserDTO>(new List<UserDTO>(), pageNumber, pageSize, 0);
@@ -113,6 +115,7 @@ namespace Task_Management_API.Application.Services
                 throw new DuplicateResourceException($"User with email {userDto.Email} already exists.");
             }
             var user = _userMapper.ToEntity(userDto);
+            user.PasswordHash = _passwordService.HashPassword(userDto.Password);
             await _repository.AddAsync(user);
             var success = await _repository.SaveChangesAsync();
             if (!success)
@@ -156,14 +159,14 @@ namespace Task_Management_API.Application.Services
                 throw new Exception("Failed to delete user.");
             }
         }
-        public async Task<IPagedList<UserDTO>> GetAllUsersByRole(string role, int pageNumber, int pageSize)
+        public async Task<IPagedList<UserDTO>> GetAllUsersByRole(Role role, int pageNumber, int pageSize)
         {
             var users = await _repository
                 .GetQueryable()
                 .Where(u => u.Role == role)
                 .ToPagedListAsync(pageNumber, pageSize);
 
-            if (users.IsNullOrEmpty())
+            if (users==null)
             {
                 _logger.LogInformation($"No users found with role: {role}");
                 return new StaticPagedList<UserDTO>(new List<UserDTO>(), pageNumber, pageSize, 0);
