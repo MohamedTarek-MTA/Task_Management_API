@@ -37,7 +37,7 @@ namespace Task_Management_API.Application.Services
         public async Task<IEnumerable<ProjectDTO>> GetAllProjects()
         {
             var projects = await _repository.GetAllAsync();
-            if (projects.IsNullOrEmpty())
+            if (projects == null)
             {
                 _logger.LogInformation("No projects found.");
                 return [];
@@ -52,7 +52,7 @@ namespace Task_Management_API.Application.Services
                 .GetQueryable()
                 .OrderBy(p => p.Name)
                 .ToPagedListAsync(pageNumber, pageSize);
-            if (projects.IsNullOrEmpty())
+            if (projects == null)
             {
                 _logger.LogInformation("No projects found.");
                 return new PagedList<ProjectDTO>(new List<ProjectDTO>(), pageNumber, pageSize);
@@ -155,7 +155,7 @@ namespace Task_Management_API.Application.Services
                     .GetQueryable()
                     .OrderBy(p => p.Name)
                     .ToPagedListAsync(pageNumber, pageSize);
-            if (projects.IsNullOrEmpty())
+            if (projects==null)
             {
                 _logger.LogInformation("No projects found matching the condition.");
                 return new StaticPagedList<ProjectDTO>(new List<ProjectDTO>(), pageNumber, pageSize, 0);
@@ -179,7 +179,7 @@ namespace Task_Management_API.Application.Services
                 .Where(p => p.ProjectStatus == status)
                 .OrderBy(p => p.Name)
                 .ToPagedListAsync(pageNumber, pageSize);
-            if (projects.IsNullOrEmpty())
+            if (projects == null)
             {
                 _logger.LogInformation("No projects found matching the condition.");
                 return new StaticPagedList<ProjectDTO>(new List<ProjectDTO>(), pageNumber, pageSize, 0);

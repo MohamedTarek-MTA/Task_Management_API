@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Task_Management_API.Domain.Enums;
 
 namespace Task_Management_API.Application.DTOs.UserDTOs
 {
@@ -9,7 +10,9 @@ namespace Task_Management_API.Application.DTOs.UserDTOs
         [Required, EmailAddress]
         public string Email { get; set; }
         [Required]
-        public string Role { get; set; }
+        public string Password { get; set; }
+        [Required]
+        public Role Role { get; set; }
 
     }
 }
